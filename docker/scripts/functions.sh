@@ -642,6 +642,7 @@ function is_reachable() {
 		echo "host is an ipv6 address, thats not supported" >&2 && exit 1
 	fi
 
+	echo -e "${YELLOW}###### Sending a ping to $host...${NC}"
 	ping -c1 -W1 "$host" &>/dev/null
 }
 
@@ -659,9 +660,18 @@ function ensure_reachable() {
 		reacquire_dhcp "$(ip_choose_if)"
 		echo -e "${YELLOW}###### OK${NC}"
 	fi
-	echo -e "${YELLOW}###### Verifying connectivity to custom url host...${NC}"
-	is_reachable "$url"
-	echo -e "${YELLOW}###### OK${NC}"
+	echo -e "${YELLOW}###### Re-checking connectivity to \"$url\"...${NC}"
+	if is_reachable "$url"; then
+		echo -e "${YELLOW}###### OK${NC}"
+	else
+		echo -e "${RED}###### Still failed! Running more diagnostics...${NC}"
+		echo -e "${YELLOW}##### Attempting to ping packet.net...${NC}"
+		if is_reachable packet.net; then
+			echo -e "${YELLOW}###### packet.net ping was successful${NC}"
+		else
+			echo -e "${YELLOW}###### packet.net ping was unsuccessful${NC}"
+		fi
+	fi
 }
 
 # Check that our git-lfs mirror server is working
